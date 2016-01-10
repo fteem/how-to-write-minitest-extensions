@@ -11,10 +11,14 @@ after a while we cannot imagine our work without it. I am sure this varies based
 on the person, but at least for me testing was definitely the best technique
 I have learned in my career.
 
+## RSpec
+
 Fortunately for us, the Ruby ecosystem has spawned couple of major testing
 frameworks and utilities. The biggest one, by popularity and by lines of code
 is definitely RSpec [1]. It has a vibrant community and a ton of supporters and
 books on it.
+
+## Minitest
 
 On the other side of the spectrum, there is Minitest. Although very small, in
 comparison with it's "competition", it is a testing tool for Ruby that provides
@@ -27,5 +31,10 @@ Ruby 1.9, when Minitest was added to Ruby's standard library. Even though at
 first it gave off the impression of a very small testing tool, it has a very
 rich set of features which make it a powerful tool to have under your belt.
 
+## Who is this book for?
+
+This book is aimed at developers that have experience with testing. The topic
+that this book covers is very limited to Minitest, so a working experience with
+Minitest is recommended.
 
 [1] Homepage - http://rspec.info/
