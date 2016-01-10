@@ -1,3 +1,0 @@
-# What are Minitest Extensions?
-
-Minitest Extensions are...

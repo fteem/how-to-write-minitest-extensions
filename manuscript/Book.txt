@@ -1,5 +1,4 @@
 1-introduction.md
 2-what-is-minitest.md
-3-understanding-how-minitest-works.md
-4-what-are-extensions.md
-5-writing-custom-reporter.md
+3-extensibility.md
+4-writing-our-first-extension.md

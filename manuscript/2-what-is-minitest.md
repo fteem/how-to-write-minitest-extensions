@@ -58,6 +58,8 @@ end
 ```
 
 By being very minimal and simple, Minitest is also super fast. And being fast
-makes it super extendable, because projects like Minitest, with simplicity in
-mind are easy to read, understand and extend.
+makes it super extensible, because projects like Minitest, with simplicity in
+mind are easy to read, understand and extend. Extensibility as a feature is the
+interest of this short e-book and is the topic of the next chapter, where we
+will see how Minitest achieves it's extensibility.
 
