@@ -55,6 +55,22 @@ As you can notice in the skeleton output above, as expected, bundler has no idea
 that we want to build a Minitest extension, therefore it's not creating a
 `minitest/clr_plugin.rb` file.
 
+## Development flow
+
+Although having the plugin skeleton is nice, for the development flow I would
+recommend using a project (preferably a smaller one) that uses Minitest as the
+testing framework.
+
+For example, I am the author of a Ruby gem called
+[Forecastr](https://github.com/fteem/forecastr) which uses Minitest. Inside the
+`lib` directory of the project, we will add a `minitest` folder. This will be
+our development workspace. After we are happy with the extension, we can extract
+the logic of the extension to the gem skeleton we created in the last step.
+
+In your own development setup, you can use any Ruby project. Also, the path of
+the directory does not have to be `lib`, as long as the path is included in
+Ruby's `LOAD_PATH`.
+
 ## Adding the plugin
 
 The file will be consisted of two methods, `Minitest.plugin_clr_options` and
@@ -62,7 +78,7 @@ The file will be consisted of two methods, `Minitest.plugin_clr_options` and
 method:
 
 ```ruby
-# minitest-clr/lib/minitest/clr_plugin.rb
+# lib/minitest/clr_plugin.rb
 
 module Minitest
   def self.plugin_clr_options(opts, options)
@@ -137,11 +153,11 @@ echo "\e[32m green output!"
 As you can notice, the characters `\e[32m` made the text green. Let's create a
 small class, that will apply colors to any strings:
 
-
 {pagebreak}
 
-
 ```ruby
+# lib/minitest/colorize.rb
+
 module Minitest
   class Colorize
     ESC    = "\e[0m"
@@ -199,5 +215,139 @@ The result:
 
 ### Manipulating IO
 
-Since we have dealt with the coloring class, let's get back to our plugin and
-the `Minitest.plugin_clr_init` method.
+Since we have dealt with the coloring class, let us get back to our plugin and
+the `Minitest.plugin_clr_init` method. This method will be invoked on startup,
+which means it is the right place to invoke the class that will do the coloring
+of the result output.
+
+```ruby
+module Minitest
+  def self.plugin_clr_options(opts, options)
+    opts.on "-c", "--clr", "Colorize results" do
+      options[:clr] = true
+    end
+  end
+
+  def self.plugin_clr_init(options)
+    io = Minitest::Clr.new(options[:io])
+    self.reporter.reporters.grep(Minitest::Reporter).each do |rep|
+      rep.io = io
+    end
+  end
+end
+```
+
+Let me take you line by line through this new method. In the first line, we
+create a new object of the `Minitest::Clr` class. This class, which we will
+cover later, will have the responsibility of coloring the resulting output. Now,
+what might not be clear at this point, is that the `Minitest::Clr` class will
+basically be a wrapper around an I/O stream, more specifically `STDOUT`. Which
+is the reason why it's taking `options[:io]` as a parameter.
+
+Now, I know you might be wondering where `options[:io]` comes from. Let us put
+some debugging statements inside the `plugin_clr_init` method and see what the
+`options` hash contains:
+
+```ruby
+# lib/minitest/clr_plugin.rb
+
+module Minitest
+  def self.plugin_clr_options(opts, options)
+    opts.on "-c", "--clr", "Colorize results" do
+      options[:clr] = true
+    end
+  end
+
+  def self.plugin_clr_init(options)
+    puts options.inspect
+
+    io = Minitest::Clr.new(options[:io])
+    self.reporter.reporters.grep(Minitest::Reporter).each do |rep|
+      rep.io = io
+    end
+  end
+end
+```
+
+When we run the tests in our workspace project, we will see the contents of the
+`options` hash:
+
+```ruby
+{ :io => #<IO:<STDOUT>>, :seed => 60965, :args => "--seed 60965" }
+```
+
+As you can notice, the `:io` key of the `options` hash has `STDOUT` as a value.
+`STDOUT` is an I/O stream, which simply put, handles the input and output. What
+we want to achieve with the `Minitest::Clr` class is to wrap the I/O stream we
+get and make it color the output of the test results.
+
+Now, since `Minitest::Clr` will wrap the I/O stream, in the next section of the
+`plugin_clr_init`, we seek all of the reporters that our project has plugged into
+Minitest and we change the I/O stream for each of them with the `Minitest::Clr`
+object that we created. This ensures us that for any reporter that Minitest uses
+in the project, the plugin will work.
+
+## Wrapping the I/O stream
+
+When we got the plugin initialization out of the way, let us see how we can write
+our I/O wrapper. First, we will see the code and then I will explain what each
+line of does:
+
+```ruby
+require "lib/minitest/colorize"
+
+module Minitest
+  class Clr
+    attr_reader :io
+
+    def initialize io
+      @io = io
+    end
+
+    def puts output = nil
+      return io.puts if output.nil?
+
+      if final_report?(output)
+        io.puts final_report!(output)
+      else
+        io.puts output
+      end
+    end
+
+    def method_missing(msg, *args)
+      io.send(msg, *args)
+    end
+
+    private
+
+    def final_report?(output)
+      output =~ /(\d+) runs, (\d+) assertions, (\d+) failures, (\d+) errors, (\d+) skips/
+    end
+
+    def final_report!(output)
+      [runs, assertions, failures, errors, skips] = output.scan(/\d+/)
+      "#{Colorize.blue(runs)} runs, #{Colorize.green(assertions)} assertions, #{Colorize.red(failures)} failures, #{Colorize.red(errors)} errors, #{Colorize.yellow(skips} skips"
+    end
+  end
+end
+```
+
+This is the whole magic in the plugin. Just like we mentioned in the last section
+of this chapter, the class takes the I/O stream as a parameter in the
+initializer. The only method that we want to override in this wrapper is the
+`Minitest::Clr#puts` method. It will check if the output which is supposed to be
+sent to the I/O stream is the last test report, which is done in the private
+method `final_report?`. If it is, it extracts the numbers from the output and
+builds the new output, with colors. Then, the output is sent to the I/O stream.
+
+Any other output, that does not match the test results report format, will not
+be colored and will be sent just to I/O stream. The last magic happens in
+`method_missing` method. Because we are not interested in overriding any other
+methods of the I/O stream, we just send any other method that is called on the
+`Minitest::Clr` object to the I/O object.
+
+## Putting it in action
+
+Since we have both, the plugin file and the actual I/O wrapper class, playing
+together nicely, let's see our plugin in action.
+
