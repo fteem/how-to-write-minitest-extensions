@@ -2,3 +2,4 @@
 2-what-is-minitest.md
 3-extensibility.md
 4-writing-our-first-extension.md
+5-failures-to-pastebin.md

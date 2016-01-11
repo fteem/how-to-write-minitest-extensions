@@ -201,6 +201,8 @@ If we try this class in `irb`, we will notice something interesting:
 => "\e[0m\e[93mLorem ipsum dolor sit amet.\e[0m"
 ```
 
+{ pagebreak }
+
 The `Colorize` class will only append the proper coloring to the text, but the
 magic happens when we ouput the text to `STDOUT`, using the well known `puts`
 method:
@@ -349,5 +351,36 @@ methods of the I/O stream, we just send any other method that is called on the
 ## Putting it in action
 
 Since we have both, the plugin file and the actual I/O wrapper class, playing
-together nicely, let's see our plugin in action.
+together nicely, let's see our plugin in action. In your workspace, run any
+Minitest test file that you have, by adding the `--clr` flag at the end:
+
+```bash
+ruby -I lib:test test/some_test.rb --clr
+```
+
+You should see the last line of the output have colored numbers.
+
+## Final steps and usage
+
+Having our plugin working nicely, we can now move our code to the gem that we
+created at the beginning. In the gem, we need to create the `lib/minitest`
+directory, and move both, the `clr_plugin.rb` and the `clr.rb` files. After,
+building and publishing the gem are quite trivial steps.
+
+After, publishing the gem, we can add it to any Ruby project by including it in
+the Gemfile and installing the bundle with `bundle install`. After the install
+completes, one other thing is to add it to the `test_helper.rb` file:
+
+```ruby
+# test/test_helper.rb
+require "minitest/autorun"
+require "minitest/unit"
+
+require "minitest/clr"
+# Other stuff here..
+```
+
+If everything went well, when you run the tests you can see the final test
+results in color.
+
 
