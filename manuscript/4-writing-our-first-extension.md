@@ -137,6 +137,10 @@ echo "\e[32m green output!"
 As you can notice, the characters `\e[32m` made the text green. Let's create a
 small class, that will apply colors to any strings:
 
+
+{pagebreak}
+
+
 ```ruby
 module Minitest
   class Colorize
