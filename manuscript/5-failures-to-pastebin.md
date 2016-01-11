@@ -6,7 +6,10 @@ In this chapter, I will show you how to write a more complicated Minitest
 extension. The idea behind the extension is that usually, when we have some tests
 that we have trouble fixing, we need to consult with a colleague. Well, there's
 no better way of sharing some code (or, in this case, a stacktrace) with a
-colleague then dpaste.com.
+colleague then Pastebin, or a similar service.
+
+For this chapter, we will use [DPaste](dpaste.com), because it has a free and
+open API, which requires no API keys and/or configuration.
 
 The plugin will enable the `--paste` switch, which will collect all of the
 failing tests stacktraces and upload them to a new DPaste entry. In addition,
@@ -52,3 +55,65 @@ Nothing fancy, just a plain Ruby class with magic from `net/http`. That's all.
 
 ## Adding the plugin file
 
+Because we now know why and how we can work with plugins in development, this
+time we will add our code directly to a gem. Let's generate one:
+
+```bash
+bundle gem minitest-paste --test=minitest
+```
+
+The `--test=minitest` flag will setup Minitest as the testing framework for the
+gem, intead of the default (RSpec). When we run the command, we can see the
+output:
+
+```bash
+Creating gem 'minitest-paste'...
+      create  minitest-paste/Gemfile
+      create  minitest-paste/.gitignore
+      create  minitest-paste/lib/minitest/paste.rb
+      create  minitest-paste/lib/minitest/paste/version.rb
+      create  minitest-paste/minitest-paste.gemspec
+      create  minitest-paste/Rakefile
+      create  minitest-paste/README.md
+      create  minitest-paste/bin/console
+      create  minitest-paste/bin/setup
+      create  minitest-paste/.travis.yml
+      create  minitest-paste/test/test_helper.rb
+      create  minitest-paste/test/minitest/paste_test.rb
+Initializing git repo in /Users/ie/dev/minitest-paste
+```
+
+In our skeleton, we will add the `lib/minitest/paste_plugin.rb` file, which is
+where our plugin configuration and initialization will be done.
+
+### Plugin configuration
+
+At the beginning of this chapter, we agreed that the command line switch which
+will enable this plugin will be `--paste`. Let us make our plugin react to this
+switch:
+
+```ruby
+# lib/minitest/paste_plugin.rb
+
+module Minitest
+  def self.plugin_paste_options(opts, options)
+    opts.on "--paste", "Upload failures to (a service like) Pastebin.com" do
+      options[:paste] = true
+    end
+  end
+
+  def self.plugin_paste_init(options)
+    self.reporter << PasteReporter.new(options) if options[:paste]
+  end
+end
+```
+
+The `Minitest.plugin_paste_options` does not do much. It just sets the `paste`
+flag to `true` in the `options` hash. The `Minitest.plugin_paste_init` does a bit
+more - it adds a new reporter to Minitest, called `PasteReporter`. This is the
+class that will capture the output of the failed tests, compile them into one
+file (or string) and upload it to DPaste.
+
+## Writing the reporter
+
+Reporters in Minitest are quite simple to write...
