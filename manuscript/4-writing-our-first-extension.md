@@ -289,6 +289,8 @@ Minitest and we change the I/O stream for each of them with the `Minitest::Clr`
 object that we created. This ensures us that for any reporter that Minitest uses
 in the project, the plugin will work.
 
+{ pagebreak }
+
 ## Wrapping the I/O stream
 
 When we got the plugin initialization out of the way, let us see how we can write
