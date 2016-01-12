@@ -26,6 +26,8 @@ The DPaste API wrapper will be quite contrived. We are only interested in saving
 the content of the failures and uploading them to the site. In return, we expect
 to get a link, that we can save to the clipboard.
 
+{ pagebreak }
+
 First, let's write the API wrapper:
 
 ```ruby
@@ -116,4 +118,78 @@ file (or string) and upload it to DPaste.
 
 ## Writing the reporter
 
-Reporters in Minitest are quite simple to write...
+Reporters in Minitest are quite simple to write, because of good documentation
+and good decisions made by the author. Minitest reporters use the
+[composite pattern](https://sourcemaking.com/design_patterns/composite), which
+enables plugging in additional reporters to Minitest, as long as they follow
+a certain class design.
+
+Minitest, has an abstract class called `AbstractReporter` which defines the
+API for the reporters. This means that, it's a good practice, to subclass the
+`AbstractReporter` when building custom reporters while overriding any of the
+methods whose behaviour we want to customize. The `AbstractReporter` class can
+be seen in the
+[Minitest source code](https://github.com/seattlerb/minitest/blob/master/lib/minitest.rb#L406).
+
+There are other reporter composite classes that we can work with, namely the
+[Statistics Reporter](https://github.com/seattlerb/minitest/blob/master/lib/minitest.rb#L479)
+and the
+[Summary Reporter](https://github.com/seattlerb/minitest/blob/master/lib/minitest.rb#L539).
+These two reporters are added onto the composite reporter list by default.
+
+The first one, `StatisticsReporter`, is a reporter that gathers statistics about
+a test run. I/O is not it's purpose, it only gathers statistics. The idea behind
+it is to represent a parent class, so other reporters can use it and the data it
+gathers.
+
+The second one, `SummaryReporter`, is a reporter that prints the header,
+summary, and failure details at the end of the run. If we want to change the
+output of this reporter, we need to pull it out of the composite reporter and
+add a plugin of our own (which we did in Chapter 3).
+
+Our reporter, called `PasteReporter`, does not needs to wrap the I/O stream,
+because we are interested only in collecting the test errors and sending them to
+dpaste. If our reporter's intention was to manipulate the output, in that case
+we would have needed to work with the I/O stream, which usually is `STDOUT`.
+
+Because we do not want to complicate things by subclassing the `AbstractReporter`,
+for our `PasteReporter` we will subclass the `StatisticsReporter`. The only
+methods whose behaviour we will need to modify are the `initializer`, the `record`
+method and the `report` method.
+
+```ruby
+module Minitest
+  class PasteReporter < StatisticsReporter
+
+    def initialize opts
+      super
+      @failures = []
+    end
+
+    def record result
+      super
+
+      if result.failures.size > 0
+        result.failures.each {|f| @failures << f.message }
+      end
+    end
+
+    def report
+      super
+
+      # Send @failures to dpaste.net...
+
+    end
+  end
+end
+```
+
+In the `initialize` method we call `super` and we create a new array called
+`@failures`. In this array we will store all of the failed test runs which, at the
+end, will be sent to dpaste.
+
+The `record` method is run after every test run. It will check if the result of
+the test run has any failures. If it does, it will add all of the failure
+messages to the `@failures` array.
+
+Now, when it comes to the `report` method, it will take a bit of work.
