@@ -213,7 +213,7 @@ method:
 
 The result:
 
-![Yellow output in terminal](images/clr-yellow-output.jpg)
+![Yellow output in terminal](images/clr-yellow-output.png)
 
 ### Manipulating IO
 
