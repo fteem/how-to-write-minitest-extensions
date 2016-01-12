@@ -157,6 +157,8 @@ for our `PasteReporter` we will subclass the `StatisticsReporter`. The only
 methods whose behaviour we will need to modify are the `initializer`, the `record`
 method and the `report` method.
 
+{ pagebreak }
+
 ```ruby
 module Minitest
   class PasteReporter < StatisticsReporter
@@ -192,4 +194,63 @@ The `record` method is run after every test run. It will check if the result of
 the test run has any failures. If it does, it will add all of the failure
 messages to the `@failures` array.
 
-Now, when it comes to the `report` method, it will take a bit of work.
+Last, but most important,the `report` method is run at the end of the test suite
+and is the place where we will need to build the content of the paste and send
+it to dpaste via the tiny API wrapper we wrote. Then, when we get the link back,
+we will need to use the `Clipboard` gem to inject the link to the clipboard.
+
+```ruby
+require 'clipboard'
+require 'dpaste'
+
+module Minitest
+  class PasteReporter < StatisticsReporter
+
+    * snipped *
+
+    def report
+      super
+
+      delimiter = "\n\n" + '-' * 80 + "\n\n"
+      link = DPaste::API.save(@failures.join(delimiter))
+      Clipboard.copy(link)
+    end
+  end
+end
+```
+
+The report method is quite straighforward. First, we create a delimiter string,
+which will be used to separate each of the error reports in the document. Then,
+we upload the content of the document using the DPaste API wrapper we made
+earlier. As the last step, we use the `Clipboard` gem to copy the link into
+our clipboard, so it is ready to share.
+
+## The Reporter in Action
+
+As the last step of this chapter, let's try our reporter in action. After building
+your gem, you can include it into the Gemfile of any Ruby project:
+
+```ruby
+gem 'minitest-paste', path: "/local/path/to/minitest-paste'
+```
+
+And install the bundle. Then, in our `test/test_helper.rb` file, we just need
+to require it:
+
+```ruby
+# test/test_helper.rb
+
+require 'minitest/paste'
+```
+
+After it is required in the `test_helper.rb`, we can run any tests with the
+`--paste` flag:
+
+```bash
+ruby -I lib:test test/any_test.rb --paste
+```
+
+If the test run produces any errors, you will get a unique dpaste link in your
+clipboard, that you can visit via your browser, or send to your colleagues for
+help.
+

@@ -126,6 +126,8 @@ ruby -I lib:test test/a_test.rb -c
 Please note that, if you are building plugins, try not to override any of the
 available flags for Minitest.
 
+{ pagebreak }
+
 ## Plugin Initialization
 
 Since our options parsing is in place, we can continue with the other method -
@@ -300,38 +302,36 @@ line of does:
 ```ruby
 require "lib/minitest/colorize"
 
-module Minitest
-  class Clr
-    attr_reader :io
+class Minitest::Clr
+  attr_reader :io
 
-    def initialize io
-      @io = io
+  def initialize io
+    @io = io
+  end
+
+  def puts output = nil
+    return io.puts if output.nil?
+
+    if final_report?(output)
+      io.puts final_report!(output)
+    else
+      io.puts output
     end
+  end
 
-    def puts output = nil
-      return io.puts if output.nil?
+  def method_missing(msg, *args)
+    io.send(msg, *args)
+  end
 
-      if final_report?(output)
-        io.puts final_report!(output)
-      else
-        io.puts output
-      end
-    end
+  private
 
-    def method_missing(msg, *args)
-      io.send(msg, *args)
-    end
+  def final_report?(output)
+    output =~ /(\d+) runs, (\d+) assertions, (\d+) failures, (\d+) errors, (\d+) skips/
+  end
 
-    private
-
-    def final_report?(output)
-      output =~ /(\d+) runs, (\d+) assertions, (\d+) failures, (\d+) errors, (\d+) skips/
-    end
-
-    def final_report!(output)
-      [runs, assertions, failures, errors, skips] = output.scan(/\d+/)
-      "#{Colorize.blue(runs)} runs, #{Colorize.green(assertions)} assertions, #{Colorize.red(failures)} failures, #{Colorize.red(errors)} errors, #{Colorize.yellow(skips} skips"
-    end
+  def final_report!(output)
+    [runs, assertions, failures, errors, skips] = output.scan(/\d+/)
+    "#{Colorize.blue(runs)} runs, #{Colorize.green(assertions)} assertions, #{Colorize.red(failures)} failures, #{Colorize.red(errors)} errors, #{Colorize.yellow(skips} skips"
   end
 end
 ```
