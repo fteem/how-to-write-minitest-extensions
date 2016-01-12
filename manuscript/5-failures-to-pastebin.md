@@ -264,3 +264,6 @@ If the test run produces any errors, you will get a unique dpaste link in your
 clipboard, that you can visit via your browser, or send to your colleagues for
 help.
 
+Note: You can see my implementation of `minitest-paste`
+[here](https://github.com/fteem/minitest-paste).
+

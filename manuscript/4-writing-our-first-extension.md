@@ -385,4 +385,6 @@ require "minitest/clr"
 If everything went well, when you run the tests you can see the final test
 results in color.
 
+Note: You can see my implementation of `minitest-clr`
+[here](https://github.com/fteem/minitest-clr).
 
