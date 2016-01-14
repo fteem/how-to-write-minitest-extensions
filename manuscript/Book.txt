@@ -3,3 +3,4 @@
 3-extensibility.md
 4-writing-our-first-extension.md
 5-failures-to-pastebin.md
+6-four-rules.md
