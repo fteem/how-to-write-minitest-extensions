@@ -185,6 +185,8 @@ we will have only two runtime dependencies: Minitest and SandiMeter. The rest
 of the gemspec file is quite straightforward - a summary and description of the
 gem, the github repo and the rest is boilerplate stuff.
 
+{ pagebreak }
+
 ### Adding the plugin file
 
 The workings of our plugin will resemble what we have already seen in the earlier
@@ -221,6 +223,8 @@ wrapper class for the SandiMeter's FileScanner class, called
 To make any sense of the results, we will create an additional class, called
 `Minitest::Metz::ScanResults`, which will contain wrap the scanning
 results with useful methods.
+
+{ pagebreak }
 
 ```ruby
 require "sandi_meter/file_scanner"
