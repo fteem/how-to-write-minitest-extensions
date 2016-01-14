@@ -315,9 +315,7 @@ class Minitest::Metz::StatsReporter < Minitest::Reporter
   end
 
   def report
-    @results.each do |key, output|
-      puts output
-    end
+    @results.each { |_, output| puts output }
   end
 
   private
