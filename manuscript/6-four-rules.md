@@ -245,6 +245,8 @@ end
 As you can notice, the `Scanner` class is quite simple - it just takes the
 file path, scans the document and returns a `Minitest::Metz::ScanResults` object.
 
+{ pagebreak }
+
 ```ruby
 module Minitest
   module Metz
@@ -252,11 +254,11 @@ module Minitest
     class ScanResults
       attr_reader :first_rule_violation, :misindentation_violation,
                   :second_rule_violation, :third_rule_violation
-      def initialize(results)
-        @first_rule_violation     = results[:first_rule][:total_classes_amount] - results[:first_rule][:small_classes_amount]
-        @misindentation_violation = results[:first_rule][:misindented_classes_amount]
-        @second_rule_violation    = results[:second_rule][:total_methods_amount] - results[:second_rule][:small_methods_amount]
-        @third_rule_violation     = results[:third_rule][:total_method_calls] - results[:third_rule][:proper_method_calls]
+      def initialize(r)
+        @first_rule_violation     = r[:first_rule][:total_classes_amount] - r[:first_rule][:small_classes_amount]
+        @misindentation_violation = r[:first_rule][:misindented_classes_amount]
+        @second_rule_violation    = r[:second_rule][:total_methods_amount] - r[:second_rule][:small_methods_amount]
+        @third_rule_violation     = r[:third_rule][:total_method_calls] - r[:third_rule][:proper_method_calls]
       end
 
       def all_valid?
