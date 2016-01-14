@@ -256,40 +256,34 @@ file path, scans the document and returns a `Minitest::Metz::ScanResults` object
 { pagebreak }
 
 ```ruby
-module Minitest
-  module Metz
+class Minitest::Metz::ScanResults
+  attr_reader :first_rule_violation, :misindentation_violation,
+              :second_rule_violation, :third_rule_violation
+  def initialize(r)
+    @first_rule_violation     = r[:first_rule][:total_classes_amount] - r[:first_rule][:small_classes_amount]
+    @misindentation_violation = r[:first_rule][:misindented_classes_amount]
+    @second_rule_violation    = r[:second_rule][:total_methods_amount] - r[:second_rule][:small_methods_amount]
+    @third_rule_violation     = r[:third_rule][:total_method_calls] - r[:third_rule][:proper_method_calls]
+  end
 
-    class ScanResults
-      attr_reader :first_rule_violation, :misindentation_violation,
-                  :second_rule_violation, :third_rule_violation
-      def initialize(r)
-        @first_rule_violation     = r[:first_rule][:total_classes_amount] - r[:first_rule][:small_classes_amount]
-        @misindentation_violation = r[:first_rule][:misindented_classes_amount]
-        @second_rule_violation    = r[:second_rule][:total_methods_amount] - r[:second_rule][:small_methods_amount]
-        @third_rule_violation     = r[:third_rule][:total_method_calls] - r[:third_rule][:proper_method_calls]
-      end
+  def all_valid?
+    first_rule_valid? && misindentation_valid? && second_rule_valid? && third_rule_valid?
+  end
 
-      def all_valid?
-        first_rule_valid? && misindentation_valid? && second_rule_valid? && third_rule_valid?
-      end
+  def first_rule_valid?
+    first_rule_violation.zero?
+  end
 
-      def first_rule_valid?
-        first_rule_violation.zero?
-      end
+  def misindentation_valid?
+    misindentation_violation.zero?
+  end
 
-      def misindentation_valid?
-        misindentation_violation.zero?
-      end
+  def second_rule_valid?
+    second_rule_violation.zero?
+  end
 
-      def second_rule_valid?
-        second_rule_violation.zero?
-      end
-
-      def third_rule_valid?
-        third_rule_violation.zero?
-      end
-    end
-
+  def third_rule_valid?
+    third_rule_violation.zero?
   end
 end
 ```
@@ -307,8 +301,6 @@ each test file that is being run with the SandiMeter and report if any of the
 test classes do not obey to the four rules.
 
 ```ruby
-# lib/minitest/metz/stats_reporter.rb
-
 class Minitest::Metz::StatsReporter < Minitest::Reporter
   def initialize
     @results = {}
