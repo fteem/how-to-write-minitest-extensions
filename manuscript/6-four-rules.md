@@ -114,6 +114,8 @@ Note: Example taken from SandiMeter's
 Now that we have the SandiMeter usage under our belts, let's move on with
 building our Minitest plugin.
 
+{ pagebreak }
+
 ## Building the plugin
 
 As usual, we start off by generating a new gem, with the
@@ -142,6 +144,8 @@ of the gem, from RSpec to Minitest.
 ### Adding dependencies
 Let's open the `minitest-metz.gemspec` file and declare the SandiMeter as a
 runtime dependency:
+
+{ pagebreak }
 
 ```ruby
 # coding: utf-8
@@ -262,14 +266,14 @@ module Minitest
       end
 
       def all_valid?
-        first_rule_valid? && misidentation_valid? && second_rule_valid? && third_rule_valid?
+        first_rule_valid? && misindentation_valid? && second_rule_valid? && third_rule_valid?
       end
 
       def first_rule_valid?
         first_rule_violation.zero?
       end
 
-      def misidentation_valid?
+      def misindentation_valid?
         misindentation_violation.zero?
       end
 
