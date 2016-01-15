@@ -343,11 +343,21 @@ As you can notice, most of the magic happens in the `record` and
 `build_results_string` method.
 
 The `record` method is run after each test case is being run. The first line of
-the `record` method, looks for the file_path of the test that is being run.
+the `record` method, looks for the file_path of the test file that is being run.
 Now, if that path has never been scanned, which means that it is not present in
 the `@results` hash, we use the `Minitest::Metz::Scanner` class to scan the file.
-The results of the scanning are formatted nicely in the `build_results_string`
-method and added to the `@results` hash, with the file path as a key.
+
+As we saw before, the `Minitest::Metz::Scanner.scan` method will return an object
+of the `Minitest::Metz::ScanResults` class. Using the utility methods that we
+added in the `ScanResults` class, we are able to nicely format the output in
+the `build_results_string` method. At the end, all of the output is added to the
+`@results` hash, with the file path as a key.
+
+### Showing the output
+
+At the end of the tests run, the `report` method is invoked. In our reporter,
+the method is quite simple - it just loops through all the results that we built
+while running the test files and prints them out.
 
 An example output of this reporter looks like this, if all of the rules are
 obeyed:
@@ -385,3 +395,14 @@ test/minitest/some_test.rb
   1 class(es) over 100 lines.
 ```
 
+## Summary
+
+As we saw in this chapter, Minitest with it's extensibility allows us to define
+classes and methods that we want to use them in our plugin. Because it's so
+flexible, aside from the `metz_plugin` file, we are able to model our objects and
+classes to fit our need. Additionally, by having our OO design in line with our
+needs, integrating all of the classes that we needed with the reporter is very
+simple.
+
+Note: You can see my implementation of `minitest-metz`
+[here](https://github.com/fteem/minitest-metz).
